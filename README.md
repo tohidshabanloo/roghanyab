@@ -94,6 +94,23 @@ This project is developed using modern web technologies and designed as a Progre
    npm run build
    ```
 
+6. **ساخت APK اندروید | Build Android APK:**
+   
+   برای ساخت APK اندروید، به فایل `BUILD_ANDROID.md` مراجعه کنید.
+   
+   For building Android APK, refer to `BUILD_ANDROID.md` file.
+   
+   **سریع | Quick:**
+   ```bash
+   # Windows
+   setup-android-build.bat    # بررسی محیط
+   build-android.bat          # ساخت APK
+   
+   # Linux/Mac
+   npm run android:debug      # ساخت APK Debug
+   npm run android:build      # ساخت APK Release
+   ```
+
 ---
 
 ## 🛠️ تکنولوژی‌های استفاده شده | Technologies Used
