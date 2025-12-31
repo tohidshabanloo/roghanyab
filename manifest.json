@@ -1,0 +1,20 @@
+
+{
+  "short_name": "روغن‌یاب",
+  "name": "روغن‌یاب - راهنمای انتخاب روغن خودرو",
+  "icons": [
+    {
+      "src": "roghan.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1d4ed8",
+  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "fa-IR"
+}
