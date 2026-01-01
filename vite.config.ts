@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: './', // <--- Add this line to fix white screen on Android
+      base: './',
       server: {
         port: 3000,
         host: '0.0.0.0',
@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
       },
       build: {
         outDir: 'dist',
+        target: 'es2015', // <--- This is the fix. We are targeting older JS versions.
       }
     };
 });
