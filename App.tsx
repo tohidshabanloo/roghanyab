@@ -254,16 +254,16 @@ const App: React.FC = () => {
       </main>
 
       <footer className={`p-8 text-center border-t text-[11px] select-none ${isDarkMode ? 'border-gray-800 bg-gray-900 text-gray-500' : 'bg-gray-50 text-gray-400'}`}>
-        <p className="font-bold">تمامی حقوق محفوظ است © ۱۴۰۳ | روغن‌یاب</p>
+        <p className="font-bold">تمامی حقوق محفوظ است © ۱۴۰۴ | روغن‌یاب</p>
         <p className="mt-2 leading-relaxed">
           طراحی و توسعه توسط{' '}
           <a 
-            href="https://koolegard.com/" 
+            href="https://rahvan.ir/" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="text-blue-500 hover:underline font-bold"
           >
-            توحید شعبانلو
+            گروه نرم افزاری رهوان
           </a>
         </p>
         <p className="mt-1 opacity-60">نسخه ۱.۰.۰ (اندروید)</p>

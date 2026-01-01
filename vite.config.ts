@@ -4,6 +4,11 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    // Get API key from .env.local file
+    const apiKey = env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || 'AIzaSyDq85XaNHDWtRnZtNfJ9AOw5Fv3F_XAXhU';
+    
+    console.log('API Key loaded:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT FOUND');
+    
     return {
       base: './',
       server: {
@@ -12,8 +17,11 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        // Define process.env.API_KEY (as used in your working code)
+        'process.env.API_KEY': JSON.stringify(apiKey),
+        'process.env.GEMINI_API_KEY': JSON.stringify(apiKey),
+        // Define import.meta.env for Vite
+        'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(apiKey),
       },
       resolve: {
         alias: {
