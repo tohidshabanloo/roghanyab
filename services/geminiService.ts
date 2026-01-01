@@ -1,22 +1,23 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Ensure API key is defined, handle undefined gracefully to prevent crash on load
-const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || '';
+// Using the provided API Key directly to ensure it's available in the Android build
+const apiKey = "AIzaSyDq85XaNHDWtRnZtNfJ9AOw5Fv3F_XAXhU";
 
 let ai: GoogleGenerativeAI | null = null;
 if (apiKey) {
     ai = new GoogleGenerativeAI(apiKey);
-} else {
-    console.warn("Gemini API Key is missing!");
 }
 
 export async function getExpertAdvice(carInfo: string): Promise<string> {
   if (!ai) {
-      return "تنظیمات هوش مصنوعی انجام نشده است. لطفاً کلید API را بررسی کنید.";
+      return "خطا: تنظیمات هوش مصنوعی انجام نشده است.";
   }
+
   try {
+    // Using 'gemini-1.5-flash' which is the standard, fast model
     const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
     const prompt = `You are a professional Iranian car maintenance expert.
       The user is asking about oil for: "${carInfo}".
       Provide 3 brief, important tips in Persian regarding oil change, filters, or specific engine maintenance for this car in Iran's climate.
@@ -24,9 +25,17 @@ export async function getExpertAdvice(carInfo: string): Promise<string> {
       
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text() || "متأسفانه مشکلی در دریافت مشاوره پیش آمد.";
-  } catch (error) {
+    return response.text();
+  } catch (error: any) {
     console.error("Gemini Error:", error);
-    return "خطا در برقراری ارتباط با کارشناس هوش مصنوعی.";
+    
+    // Check for specific error types to give better advice
+    const errorMessage = error.message || JSON.stringify(error);
+    
+    if (errorMessage.includes("404") || errorMessage.includes("not found")) {
+         return `خطا: مدل هوش مصنوعی در دسترس نیست (404).\n\nنکته مهم: اگر در ایران هستید، لطفاً اطمینان حاصل کنید که VPN روی گوشی/شبیه‌ساز شما روشن است. گوگل این سرویس را برای IP ایران مسدود کرده است.`;
+    }
+    
+    return `خطا در ارتباط با هوش مصنوعی:\n${errorMessage}`;
   }
 }
