@@ -12,7 +12,7 @@ export interface EngineOption {
   capacityWithFilter: string;
   capacityWithoutFilter: string;
   apiGrade: string;
-  tips?: string;
+  tips?: string | string[]; // Changed to allow array of strings for multiple tips
 }
 
 export interface Brand {

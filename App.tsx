@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Car, Info, ChevronLeft, RefreshCw, AlertTriangle, Moon, Sun, FileText, Droplets } from 'lucide-react'; // <--- Added Droplets back here
+import { Search, Car, Info, ChevronLeft, RefreshCw, AlertTriangle, Moon, Sun, FileText, Droplets } from 'lucide-react';
 import { BRANDS } from './constants';
 import { Brand, CarModel, EngineOption } from './types';
 // @ts-ignore
@@ -68,6 +68,19 @@ const App: React.FC = () => {
       );
     }
     return <img src={src} alt={alt} className={className} onError={() => setError(true)} />;
+  };
+
+  const TipsList = ({ tips }: { tips?: string | string[] }) => {
+    if (!tips) return null;
+    const tipsArray = Array.isArray(tips) ? tips : [tips];
+    
+    return (
+      <ul className="list-disc pr-4 space-y-2">
+        {tipsArray.map((tip, index) => (
+          <li key={index}>{tip}</li>
+        ))}
+      </ul>
+    );
   };
 
   return (
@@ -222,13 +235,7 @@ const App: React.FC = () => {
               </div>
 
               <div className={`text-sm leading-7 whitespace-pre-line p-5 rounded-2xl ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white/5 border border-white/10'}`}>
-                <ul className="list-disc pr-4 space-y-2">
-                   <li>روغن موتور را همیشه به موقع و طبق کیلومتر پیشنهادی تعویض کنید.</li>
-                   <li>همراه با تعویض روغن، حتماً فیلتر روغن را نیز تعویض نمایید.</li>
-                   <li>از ترکیب دو نوع روغن مختلف با گرانروی متفاوت خودداری کنید.</li>
-                   <li>سطح روغن را به صورت دوره‌ای (مثلاً هر هزار کیلومتر) چک کنید.</li>
-                   <li>در شرایط سخت رانندگی (ترافیک سنگین، گرد و خاک)، روغن را زودتر تعویض کنید.</li>
-                </ul>
+                 <TipsList tips={selectedEngine.tips} />
               </div>
             </div>
 
@@ -245,15 +252,24 @@ const App: React.FC = () => {
         <p className="mt-2 leading-relaxed">
           طراحی و توسعه توسط{' '}
           <a 
+            href="https://koolegard.com/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-blue-500 hover:underline font-bold"
+          >
+            توحید شعبانلو
+          </a>
+          {' | '}
+          <a 
             href="https://rahvan.ir/" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="text-blue-500 hover:underline font-bold"
           >
-            گروه نرم افزاری رهوان
+            گروه رهوان
           </a>
         </p>
-        <p className="mt-1 opacity-60">نسخه ۱.۰.۰ (اندروید)</p>
+        <p className="mt-1 opacity-60">نسخه ۱.۱.۰ (اندروید)</p>
       </footer>
     </div>
   );
