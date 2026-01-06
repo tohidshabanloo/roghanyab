@@ -269,7 +269,7 @@ const App: React.FC = () => {
             گروه رهوان
           </a>
         </p>
-        <p className="mt-1 opacity-60">نسخه ۱.۱.۰ (اندروید)</p>
+        <p className="mt-1 opacity-60">نسخه ۲.۰.۰ (اندروید)</p>
       </footer>
     </div>
   );
