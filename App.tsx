@@ -1,16 +1,15 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Car, Droplets, Info, ChevronLeft, RefreshCw, MessageSquare, AlertTriangle, X, Moon, Sun, WifiOff } from 'lucide-react';
+import { Search, Car, Info, ChevronLeft, RefreshCw, AlertTriangle, Moon, Sun, FileText, Droplets } from 'lucide-react'; // <--- Added Droplets back here
 import { BRANDS } from './constants';
 import { Brand, CarModel, EngineOption } from './types';
-import { getExpertAdvice } from './services/geminiService';
+// @ts-ignore
+import appLogo from './roghan.png';
 
 const App: React.FC = () => {
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [selectedModel, setSelectedModel] = useState<CarModel | null>(null);
   const [selectedEngine, setSelectedEngine] = useState<EngineOption | null>(null);
-  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
-  const [loadingAi, setLoadingAi] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -52,22 +51,11 @@ const App: React.FC = () => {
     setSelectedBrand(null);
     setSelectedModel(null);
     setSelectedEngine(null);
-    setAiAdvice(null);
     setSearchTerm('');
   };
 
-  const handleEngineSelect = async (engine: EngineOption) => {
+  const handleEngineSelect = (engine: EngineOption) => {
     setSelectedEngine(engine);
-    if (!isOnline) {
-      setAiAdvice("برای دریافت مشاوره هوشمند، لطفاً به اینترنت متصل شوید. اطلاعات پایه فنی در بالا قابل مشاهده است.");
-      return;
-    }
-    setLoadingAi(true);
-    setAiAdvice(null);
-    const infoString = `${selectedBrand?.name} - ${selectedModel?.name} - موتور ${engine.name}`;
-    const advice = await getExpertAdvice(infoString);
-    setAiAdvice(advice);
-    setLoadingAi(false);
   };
 
   const ImageOrIcon = ({ src, alt, className }: { src?: string, alt: string, className: string }) => {
@@ -88,7 +76,7 @@ const App: React.FC = () => {
       <header className={`bg-gradient-to-l ${isDarkMode ? 'from-gray-800 to-gray-900' : 'from-blue-700 to-indigo-800'} text-white p-5 sticky top-0 z-30 shadow-lg select-none`}>
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-xl font-black flex items-center gap-2">
-            <Droplets className="text-yellow-400" />
+            <img src={appLogo} alt="Logo" className="w-8 h-8 object-contain drop-shadow-md" />
             روغن‌یاب خودرو
           </h1>
           <div className="flex gap-2">
@@ -228,21 +216,20 @@ const App: React.FC = () => {
             <div className={`rounded-[2rem] p-6 shadow-xl relative overflow-hidden ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-900 text-white'}`}>
               <div className="flex items-center gap-4 mb-4">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-indigo-500' : 'bg-white/10'}`}>
-                  {isOnline ? <MessageSquare className="text-yellow-400" size={20} /> : <WifiOff className="text-red-400" size={20} />}
+                   <FileText className="text-yellow-400" size={20} />
                 </div>
-                <h3 className="font-black text-lg">مشاوره هوشمند</h3>
+                <h3 className="font-black text-lg">نکات مهم نگهداری</h3>
               </div>
 
-              {loadingAi ? (
-                <div className="flex flex-col items-center justify-center py-6 opacity-70">
-                  <RefreshCw className="animate-spin mb-2" size={24} />
-                  <span className="text-xs font-bold">در حال دریافت اطلاعات...</span>
-                </div>
-              ) : (
-                <div className={`text-xs leading-7 whitespace-pre-line p-5 rounded-2xl ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white/5 border border-white/10'}`}>
-                  {aiAdvice}
-                </div>
-              )}
+              <div className={`text-sm leading-7 whitespace-pre-line p-5 rounded-2xl ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white/5 border border-white/10'}`}>
+                <ul className="list-disc pr-4 space-y-2">
+                   <li>روغن موتور را همیشه به موقع و طبق کیلومتر پیشنهادی تعویض کنید.</li>
+                   <li>همراه با تعویض روغن، حتماً فیلتر روغن را نیز تعویض نمایید.</li>
+                   <li>از ترکیب دو نوع روغن مختلف با گرانروی متفاوت خودداری کنید.</li>
+                   <li>سطح روغن را به صورت دوره‌ای (مثلاً هر هزار کیلومتر) چک کنید.</li>
+                   <li>در شرایط سخت رانندگی (ترافیک سنگین، گرد و خاک)، روغن را زودتر تعویض کنید.</li>
+                </ul>
+              </div>
             </div>
 
             <button onClick={resetSelection} className={`w-full mt-8 font-black py-5 rounded-[1.5rem] active:scale-95 transition-all shadow-lg flex items-center justify-center gap-3 ${isDarkMode ? 'bg-blue-600 text-white' : 'bg-gray-900 text-white'}`}>
