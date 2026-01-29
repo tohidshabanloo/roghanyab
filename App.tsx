@@ -371,18 +371,36 @@ const App: React.FC = () => {
                 <h3 className="font-bold text-lg mb-4">{editingLog ? 'ویرایش سرویس' : 'ثبت سرویس جدید'}</h3>
                 <div className="mb-4">
                     <label className="font-bold text-sm block mb-2">تاریخ سرویس</label>
-                    <DatePicker value={selectedDay} onChange={setSelectedDay} inputPlaceholder="انتخاب تاریخ" shouldHighlightWeekends locale="fa" calendarClassName={isDarkMode ? "dark-theme centered-calendar" : "centered-calendar"} calendarPopperPosition="bottom"/>
+                    <DatePicker 
+                        value={selectedDay} 
+                        onChange={setSelectedDay} 
+                        inputPlaceholder="انتخاب تاریخ" 
+                        shouldHighlightWeekends 
+                        locale="fa" 
+                        inputClassName={`w-full p-3 rounded-lg text-center font-bold ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'}`}
+                        calendarClassName={isDarkMode ? "dark-theme centered-calendar" : "centered-calendar"} 
+                    />
                      <style>{`
-                        .centered-calendar .DayPicker {
-                            left: 50% !important;
-                            transform: translateX(-50%) !important;
+                        .responsive-calendar-wrapper {
+                            z-index: 50;
+                            position: fixed; /* Use fixed positioning */
+                            top: 0; right: 0; bottom: 0; left: 0;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        .DayPicker {
+                           position: relative !important; /* Override absolute positioning */
+                           left: auto !important; 
+                           top: auto !important;
+                           transform: none !important;
                         }
                         ${isDarkMode && `.dark-theme { --cl-bg: #2d3748; --cl-color-disabled: #4a5568; --cl-color: #e2e8f0; --cl-hover: #4a5568; --cl-color-head: #a0aec0;}`}
                     `}</style>
                 </div>
                 <div className="mb-4">
                     <label className="font-bold text-sm block mb-2">کیلومتر فعلی خودرو</label>
-                    <input type="number" value={kilometer} onChange={e => setKilometer(e.target.value)} placeholder="مثال: ۱۲۵۰۰۰" className={`w-full p-3 rounded-lg text-center font-bold ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`} />
+                    <input type="number" value={kilometer} onChange={e => setKilometer(e.target.value)} placeholder="مثال: ۱۲۵۰۰۰" className={`w-full p-3 rounded-lg text-center font-bold ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-100'}`} />
                 </div>
                 <div className="mb-4">
                     <label className="font-bold text-sm block mb-2">سرویس‌های انجام شده</label>
