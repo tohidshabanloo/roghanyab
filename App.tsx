@@ -30,6 +30,23 @@ const toPersianDigits = (n: string | number) => {
     return String(n).replace(/[0-9]/g, w => id[+w]);
 };
 
+const formatDate = (dateStr: string) => {
+    if (dateStr.includes('/')) return dateStr;
+
+    // Handle legacy ISO strings
+    try {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        // If year is < 1600, it was incorrectly saved as Jalali-in-Gregorian
+        if (year < 1600) {
+            return `${year}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+        }
+        return date.toLocaleDateString('fa-IR-u-nu-latn');
+    } catch (e) {
+        return dateStr;
+    }
+};
+
 const App: React.FC = () => {
     const [view, setView] = useState('dashboard');
     const [myCar, setMyCar] = useState<any | null>(null);
@@ -72,7 +89,7 @@ const App: React.FC = () => {
             const { value: logsValue } = await Preferences.get({ key: LOG_STORAGE_KEY });
             if (logsValue) {
                 const parsedLogs: Log[] = JSON.parse(logsValue);
-                parsedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                parsedLogs.sort((a, b) => b.date.localeCompare(a.date));
                 setLogs(parsedLogs);
             }
         };
@@ -142,7 +159,7 @@ const App: React.FC = () => {
 
     const saveLogs = async (updatedLogs: Log[]) => {
         await Preferences.set({ key: LOG_STORAGE_KEY, value: JSON.stringify(updatedLogs) });
-        updatedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        updatedLogs.sort((a, b) => b.date.localeCompare(a.date));
         setLogs(updatedLogs);
     };
 
@@ -156,13 +173,13 @@ const App: React.FC = () => {
         if (editingLog) {
             updatedLogs = logs.map(log =>
                 log.id === editingLog.id
-                    ? { ...log, date: new Date(`${selectedDay.year}-${selectedDay.month}-${selectedDay.day}`).toISOString(), kilometer: Number(kilometer), services: selectedServices, notes }
+                    ? { ...log, date: `${selectedDay.year}/${String(selectedDay.month).padStart(2, '0')}/${String(selectedDay.day).padStart(2, '0')}`, kilometer: Number(kilometer), services: selectedServices, notes }
                     : log
             );
         } else {
             const newLog: Log = {
                 id: new Date().toISOString(),
-                date: new Date(`${selectedDay.year}-${selectedDay.month}-${selectedDay.day}`).toISOString(),
+                date: `${selectedDay.year}/${String(selectedDay.month).padStart(2, '0')}/${String(selectedDay.day).padStart(2, '0')}`,
                 kilometer: Number(kilometer),
                 services: selectedServices,
                 notes: notes,
@@ -177,8 +194,13 @@ const App: React.FC = () => {
 
     const handleStartEdit = (log: Log) => {
         setEditingLog(log);
-        const date = new Date(log.date);
-        setSelectedDay({ year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() });
+        if (log.date.includes('/')) {
+            const [y, m, d] = log.date.split('/').map(Number);
+            setSelectedDay({ year: y, month: m, day: d });
+        } else {
+            const date = new Date(log.date);
+            setSelectedDay({ year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() });
+        }
         setKilometer(String(log.kilometer));
         setSelectedServices(log.services);
         setNotes(log.notes || '');
@@ -426,7 +448,12 @@ const App: React.FC = () => {
             {logs.length > 0 ? logs.map(log => (
                 <div key={log.id} className={`p-4 rounded-2xl border mb-3 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <div className="flex justify-between items-start">
-                        <div><p className="font-bold text-lg">{toPersianDigits(log.kilometer.toLocaleString())} کیلومتر</p><p className="text-xs opacity-70 mb-3">{toPersianDigits(new Date(log.date).toLocaleDateString('fa-IR-u-nu-latn'))}</p></div>
+                        <div>
+                            <p className="font-bold text-lg">{toPersianDigits(log.kilometer.toLocaleString())} کیلومتر</p>
+                            <p className="text-xs opacity-70 mb-3">
+                                {toPersianDigits(formatDate(log.date))}
+                            </p>
+                        </div>
                         <div className="flex gap-2">
                             <button onClick={() => handleStartEdit(log)} className="text-blue-500 p-2"><Edit size={16} /></button>
                             <button onClick={() => { if (confirm('آیا از حذف این سابقه مطمئن هستید؟')) handleDeleteLog(log.id) }} className="text-red-500 p-2"><Trash2 size={16} /></button>

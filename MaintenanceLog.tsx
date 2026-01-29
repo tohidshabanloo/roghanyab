@@ -23,6 +23,20 @@ const toPersianDigits = (n: string | number) => {
   return String(n).replace(/[0-9]/g, w => id[+w]);
 };
 
+const formatDate = (dateStr: string) => {
+  if (dateStr.includes('/')) return dateStr;
+  try {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    if (year < 1600) {
+      return `${year}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+    }
+    return date.toLocaleDateString('fa-IR-u-nu-latn');
+  } catch (e) {
+    return dateStr;
+  }
+};
+
 export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean }> = ({ onClose, isDarkMode }) => {
   const [logs, setLogs] = useState<Log[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -39,7 +53,7 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
       if (value) {
         const parsedLogs: Log[] = JSON.parse(value);
         // Sort logs by date, newest first
-        parsedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        parsedLogs.sort((a, b) => b.date.localeCompare(a.date));
         setLogs(parsedLogs);
       }
     };
@@ -49,7 +63,7 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
   const saveLogs = async (updatedLogs: Log[]) => {
     await Preferences.set({ key: STORAGE_KEY, value: JSON.stringify(updatedLogs) });
     // Sort logs by date before setting state
-    updatedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    updatedLogs.sort((a, b) => b.date.localeCompare(a.date));
     setLogs(updatedLogs);
   };
 
@@ -61,7 +75,7 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
 
     const newLog: Log = {
       id: new Date().toISOString(),
-      date: new Date(`${selectedDay.year}-${selectedDay.month}-${selectedDay.day}`).toISOString(),
+      date: `${selectedDay.year}/${String(selectedDay.month).padStart(2, '0')}/${String(selectedDay.day).padStart(2, '0')}`,
       kilometer: Number(kilometer),
       services: selectedServices,
       notes: notes,
@@ -96,7 +110,9 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
       <div className="flex justify-between items-start">
         <div>
           <p className="font-bold text-lg">{toPersianDigits(log.kilometer.toLocaleString())} کیلومتر</p>
-          <p className="text-xs opacity-70 mb-3">{toPersianDigits(new Date(log.date).toLocaleDateString('fa-IR-u-nu-latn'))}</p>
+          <p className="text-xs opacity-70 mb-3">
+            {toPersianDigits(formatDate(log.date))}
+          </p>
         </div>
         <button onClick={() => handleDeleteLog(log.id)} className="text-red-500 p-2 active:scale-90 transition-transform">
           <Trash2 size={16} />
