@@ -1,295 +1,436 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Car, Info, ChevronLeft, RefreshCw, AlertTriangle, Moon, Sun, FileText, Droplets } from 'lucide-react';
+import { Search, Car, Info, ChevronLeft, RefreshCw, AlertTriangle, Moon, Sun, FileText, Droplets, Wrench, Book, Database, Plus, Trash2, X, Edit } from 'lucide-react';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Preferences } from '@capacitor/preferences';
+import DatePicker, { utils } from '@hassanmojab/react-modern-calendar-datepicker';
+import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css';
 import { BRANDS } from './constants';
-import { Brand, CarModel, EngineOption } from './types';
+import { Brand, CarModel, EngineOption, MaintenanceLog as Log } from './types';
+
 // @ts-ignore
 import appLogo from './roghan.png';
 
+const LOG_STORAGE_KEY = 'maintenance_logs';
+const MY_CAR_STORAGE_KEY = 'my_car_selection';
+
+const serviceOptions = [
+  'تعویض روغن موتور', 
+  'تعویض فیلتر روغن',
+  'تعویض فیلتر کابین',
+  'تعویض فیلتر بنزین',
+  'تعویض فیلتر هوا',
+  'تعویض شمع‌ها',
+  'سرویس ترمزها'
+];
+
+const toPersianDigits = (n: string | number) => {
+  if (n === null || n === undefined) return '';
+  const id = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return String(n).replace(/[0-9]/g, w => id[+w]);
+};
+
 const App: React.FC = () => {
+  const [view, setView] = useState('dashboard');
+  const [myCar, setMyCar] = useState<any | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [selectedModel, setSelectedModel] = useState<CarModel | null>(null);
   const [selectedEngine, setSelectedEngine] = useState<EngineOption | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [kilometer, setKilometer] = useState('');
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [notes, setNotes] = useState('');
+  const [selectedDay, setSelectedDay] = useState(utils('fa').getToday());
+  const [showMyCarInfo, setShowMyCarInfo] = useState(false);
+  const [editingLog, setEditingLog] = useState<Log | null>(null);
+  const [showCustomCar, setShowCustomCar] = useState(false);
+  const [customCarName, setCustomCarName] = useState('');
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+    const loadInitialData = async () => {
+      const { value: myCarValue } = await Preferences.get({ key: MY_CAR_STORAGE_KEY });
+      if (myCarValue) {
+        const savedCar = JSON.parse(myCarValue);
+        if (savedCar.isCustom) {
+            setMyCar(savedCar);
+        } else {
+            const brand = BRANDS.find(b => b.id === savedCar.brandId);
+            const model = brand?.models.find(m => m.id === savedCar.modelId);
+            const engine = model?.engines.find(e => e.id === savedCar.engineId);
+            if (brand && model && engine) {
+                setMyCar({ brand, model, engine, isCustom: false });
+            } else {
+                setView('browser');
+            }
+        }
+      } else {
+        setView('browser');
+      }
+      const { value: logsValue } = await Preferences.get({ key: LOG_STORAGE_KEY });
+      if (logsValue) {
+        const parsedLogs: Log[] = JSON.parse(logsValue);
+        parsedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setLogs(parsedLogs);
+      }
     };
+    loadInitialData();
+
+    CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      handleBackPress();
+    });
+
+    return () => {
+        CapacitorApp.removeAllListeners();
+    }
+
   }, []);
 
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+  const handleBackPress = () => {
+      if (showMyCarInfo) {
+          setShowMyCarInfo(false);
+      } else if (showForm) {
+          resetLogForm();
+      } else if (view === 'browser') {
+          if (selectedEngine) {
+              setSelectedEngine(null);
+          } else if (selectedModel) {
+              setSelectedModel(null);
+          } else if (selectedBrand) {
+              resetBrowser();
+          } else if (showCustomCar) {
+              setShowCustomCar(false);
+          } else if (myCar) {
+              setView('dashboard');
+          } else {
+              CapacitorApp.exitApp();
+          }
+      } else {
+          CapacitorApp.exitApp();
+      }
+  }
+
+  const filteredBrands = useMemo(() => BRANDS.filter(brand => brand.name.toLowerCase().includes(searchTerm.toLowerCase()) || brand.id.toLowerCase().includes(searchTerm.toLowerCase())), [searchTerm]);
+  const filteredModels = useMemo(() => !selectedBrand ? [] : selectedBrand.models.filter(model => model.name.toLowerCase().includes(searchTerm.toLowerCase())), [selectedBrand, searchTerm]);
+  
+  const handleSelectEngine = (engine: EngineOption) => setSelectedEngine(engine);
+
+  const handleSetMyCar = async (carData: any) => {
+      await Preferences.set({ key: MY_CAR_STORAGE_KEY, value: JSON.stringify(carData) });
+      if (carData.isCustom) {
+        setMyCar(carData);
+      } else {
+        const brand = BRANDS.find(b => b.id === carData.brandId)!;
+        const model = brand.models.find(m => m.id === carData.modelId)!;
+        const engine = model.engines.find(e => e.id === carData.engineId)!;
+        setMyCar({ brand, model, engine, isCustom: false });
+      }
+      setView('dashboard');
+      resetBrowser();
+  };
+  
+  const resetBrowser = () => {
+      setSelectedBrand(null);
+      setSelectedModel(null);
+      setSelectedEngine(null);
+      setSearchTerm('');
+      setShowCustomCar(false);
+      setCustomCarName('');
+  };
+
+  const saveLogs = async (updatedLogs: Log[]) => {
+    await Preferences.set({ key: LOG_STORAGE_KEY, value: JSON.stringify(updatedLogs) });
+    updatedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setLogs(updatedLogs);
+  };
+
+  const handleSaveLog = () => {
+    if (!kilometer || selectedServices.length === 0) {
+      alert('لطفاً کیلومتر و حداقل یک سرویس را مشخص کنید.');
+      return;
+    }
+
+    let updatedLogs;
+    if (editingLog) {
+        updatedLogs = logs.map(log => 
+            log.id === editingLog.id 
+            ? { ...log, date: new Date(`${selectedDay.year}-${selectedDay.month}-${selectedDay.day}`).toISOString(), kilometer: Number(kilometer), services: selectedServices, notes }
+            : log
+        );
     } else {
-      document.documentElement.classList.remove('dark');
+        const newLog: Log = {
+          id: new Date().toISOString(),
+          date: new Date(`${selectedDay.year}-${selectedDay.month}-${selectedDay.day}`).toISOString(),
+          kilometer: Number(kilometer),
+          services: selectedServices,
+          notes: notes,
+        };
+        updatedLogs = [...logs, newLog];
     }
-  }, [isDarkMode]);
-
-  const filteredBrands = useMemo(() => {
-    return BRANDS.filter(brand => 
-      brand.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      brand.id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
-
-  const filteredModels = useMemo(() => {
-    if (!selectedBrand) return [];
-    return selectedBrand.models.filter(model =>
-      model.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [selectedBrand, searchTerm]);
-
-  const resetSelection = () => {
-    setSelectedBrand(null);
-    setSelectedModel(null);
-    setSelectedEngine(null);
-    setSearchTerm('');
+    saveLogs(updatedLogs);
+    resetLogForm();
   };
 
-  const handleEngineSelect = (engine: EngineOption) => {
-    setSelectedEngine(engine);
+  const handleDeleteLog = (id: string) => saveLogs(logs.filter(log => log.id !== id));
+
+  const handleStartEdit = (log: Log) => {
+    setEditingLog(log);
+    const date = new Date(log.date);
+    setSelectedDay({ year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() });
+    setKilometer(String(log.kilometer));
+    setSelectedServices(log.services);
+    setNotes(log.notes || '');
+    setShowForm(true);
+    window.scrollTo(0, 0);
   };
 
-  const ImageOrIcon = ({ src, alt, className }: { src?: string, alt: string, className: string }) => {
-    const [error, setError] = useState(false);
-    if (!src || error) {
-      return (
-        <div className={`${className} bg-gray-100 dark:bg-gray-700 flex items-center justify-center rounded-xl`}>
-          <Car className="text-gray-400 dark:text-gray-500" size={24} />
-        </div>
-      );
-    }
-    return <img src={src} alt={alt} className={className} onError={() => setError(true)} />;
+  const resetLogForm = () => {
+    setKilometer('');
+    setSelectedServices([]);
+    setNotes('');
+    setSelectedDay(utils('fa').getToday());
+    setShowForm(false);
+    setEditingLog(null);
   };
 
-  const TipsList = ({ tips }: { tips?: string | string[] }) => {
-    if (!tips) return null;
-    const tipsArray = Array.isArray(tips) ? tips : [tips];
-    
-    return (
-      <ul className="list-disc pr-4 space-y-2">
-        {tipsArray.map((tip, index) => (
-          <li key={index}>{tip}</li>
-        ))}
-      </ul>
-    );
-  };
+  const toggleService = (service: string) => setSelectedServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]);
 
-  return (
-    <div className={`min-h-screen flex flex-col max-w-2xl mx-auto shadow-2xl transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
-      {/* Header */}
-      <header className={`bg-gradient-to-l ${isDarkMode ? 'from-gray-800 to-gray-900' : 'from-blue-700 to-indigo-800'} text-white p-5 sticky top-0 z-30 shadow-lg select-none`}>
+  const renderHeader = () => (
+     <header className={`bg-gradient-to-l ${isDarkMode ? 'from-gray-800 to-gray-900' : 'from-blue-700 to-indigo-800'} text-white p-5 sticky top-0 z-30 shadow-lg select-none`}>
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-xl font-black flex items-center gap-2">
-            <img src={appLogo} alt="Logo" className="w-8 h-8 object-contain drop-shadow-md" />
-            روغن‌یاب خودرو
-          </h1>
-          <div className="flex gap-2">
-            <button 
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="bg-white/10 p-2 rounded-xl active:scale-90 transition-all"
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            {(selectedBrand || selectedModel) && (
-              <button 
-                onClick={resetSelection}
-                className="bg-white/10 p-2 rounded-xl active:scale-90 transition-all"
-              >
-                <RefreshCw size={20} />
-              </button>
-            )}
-          </div>
+            <h1 className="text-xl font-black flex items-center gap-2">
+                <img src={appLogo} alt="Logo" className="w-8 h-8 object-contain drop-shadow-md" />
+                روغن‌یاب خودرو
+            </h1>
+            <div className="flex gap-2">
+                 {view === 'dashboard' && myCar ? (
+                    <button onClick={() => setView('browser')} title="بانک اطلاعاتی خودروها" className="bg-white/10 p-2 rounded-xl"><Database size={20} /></button>
+                ) : null}
+                {view === 'browser' && myCar ? (
+                    <button onClick={() => setView('dashboard')} title="داشبورد من" className="bg-white/10 p-2 rounded-xl"><Book size={20} /></button>
+                ) : null}
+                <button onClick={() => setIsDarkMode(!isDarkMode)} className="bg-white/10 p-2 rounded-xl"><Moon size={20} /></button>
+            </div>
         </div>
-        <p className="text-blue-100 text-xs opacity-90">نسخه اپلیکیشن اندروید - راهنمای فنی</p>
-      </header>
+    </header>
+  );
 
-      {/* Main Content */}
-      <main className="flex-1 p-4 pb-12 overflow-x-hidden">
-        
-        {!selectedBrand && (
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute right-4 top-4 text-gray-400" size={18} />
-                <input 
-                  type="text" 
-                  placeholder="جستجوی برند (مثلاً هیوندای یا سایپا)..."
-                  className={`w-full pr-12 pl-4 py-4 border-2 rounded-2xl focus:border-blue-500 focus:outline-none transition-all text-sm font-bold ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-100 text-gray-900 placeholder-gray-400'}`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <h2 className="text-md font-bold mb-4 flex items-center gap-2 px-1">
-              <span className="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]">۱</span>
-              برند خودرو را انتخاب کنید:
-            </h2>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {filteredBrands.map(brand => (
-                <button
-                  key={brand.id}
-                  onClick={() => { setSelectedBrand(brand); setSearchTerm(''); }}
-                  className={`flex flex-col items-center justify-center p-4 border-2 rounded-2xl transition-all active:scale-95 group aspect-square shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
-                >
-                  <div className="w-12 h-12 mb-3 flex items-center justify-center">
-                    <ImageOrIcon src={brand.logo} alt={brand.name} className="max-w-full max-h-full object-contain" />
-                  </div>
-                  <span className="font-bold text-center text-[11px] sm:text-xs">{brand.name}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {selectedBrand && !selectedModel && (
-          <section className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <button onClick={() => setSelectedBrand(null)} className="flex items-center text-blue-500 mb-6 font-bold text-sm">
-              <ChevronLeft size={18} />
-              بازگشت به برندها
-            </button>
-
-            <div className="mb-6">
-              <input 
-                type="text" 
-                placeholder={`جستجوی مدل ${selectedBrand.name}...`}
-                className={`w-full px-4 py-4 border-2 rounded-2xl focus:border-blue-500 focus:outline-none transition-all text-sm font-bold ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-100 text-gray-900'}`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-3">
-              {filteredModels.map(model => (
-                <button
-                  key={model.id}
-                  onClick={() => { setSelectedModel(model); setSearchTerm(''); }}
-                  className={`w-full flex items-center justify-between p-5 border-2 rounded-2xl active:scale-[0.98] transition-all shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <Car size={20} className="text-gray-400" />
-                    <span className="font-bold text-md">{model.name}</span>
-                  </div>
-                  <ChevronLeft size={16} className="text-gray-300" />
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {selectedModel && !selectedEngine && (
-          <section className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <button onClick={() => setSelectedModel(null)} className="flex items-center text-blue-500 mb-6 font-bold text-sm">
-              <ChevronLeft size={18} />
-              بازگشت به مدل‌ها
-            </button>
-            <div className="space-y-4">
-              {selectedModel.engines.map(engine => (
-                <button
-                  key={engine.id}
-                  onClick={() => handleEngineSelect(engine)}
-                  className={`w-full text-right p-6 border-2 rounded-3xl active:scale-[0.98] transition-all shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
-                >
-                  <div className="font-black text-lg mb-1">{engine.name}</div>
-                  <div className="text-xs opacity-50">مشاهده ظرفیت و گرانروی</div>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {selectedEngine && (
-          <div className="animate-in zoom-in-95 duration-500">
-            <div className={`rounded-[2rem] border-2 overflow-hidden shadow-2xl mb-8 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-blue-50'}`}>
-              <div className={`p-6 text-white ${isDarkMode ? 'bg-gray-700' : 'bg-gradient-to-l from-blue-600 to-indigo-700'}`}>
-                <h2 className="text-xl font-black">{selectedModel?.name}</h2>
-                <p className="opacity-80 text-xs mt-1">{selectedEngine.name}</p>
-              </div>
-              
-              <div className="p-5 grid grid-cols-1 gap-3">
-                <ResultCard isDark={isDarkMode} icon={<Droplets size={16}/>} label="گرانروی پیشنهادی" value={selectedEngine.viscosity} color="amber" />
-                <ResultCard isDark={isDarkMode} icon={<Info size={16}/>} label="سطح کیفی API" value={selectedEngine.apiGrade} color="blue" />
-                <div className="grid grid-cols-2 gap-3">
-                  <ResultCard isDark={isDarkMode} icon={<AlertTriangle size={14}/>} label="حجم با فیلتر" value={selectedEngine.capacityWithFilter} color="emerald" />
-                  <ResultCard isDark={isDarkMode} icon={<AlertTriangle size={14}/>} label="حجم بدون فیلتر" value={selectedEngine.capacityWithoutFilter} color="teal" />
-                </div>
-              </div>
-            </div>
-
-            <div className={`rounded-[2rem] p-6 shadow-xl relative overflow-hidden ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-900 text-white'}`}>
-              <div className="flex items-center gap-4 mb-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-indigo-500' : 'bg-white/10'}`}>
-                   <FileText className="text-yellow-400" size={20} />
-                </div>
-                <h3 className="font-black text-lg">نکات مهم نگهداری</h3>
-              </div>
-
-              <div className={`text-sm leading-7 whitespace-pre-line p-5 rounded-2xl ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white/5 border border-white/10'}`}>
-                 <TipsList tips={selectedEngine.tips} />
-              </div>
-            </div>
-
-            <button onClick={resetSelection} className={`w-full mt-8 font-black py-5 rounded-[1.5rem] active:scale-95 transition-all shadow-lg flex items-center justify-center gap-3 ${isDarkMode ? 'bg-blue-600 text-white' : 'bg-gray-900 text-white'}`}>
-              <RefreshCw size={18} />
-              جستجوی جدید
-            </button>
-          </div>
-        )}
-      </main>
-
+  const renderFooter = () => (
       <footer className={`p-8 text-center border-t text-[11px] select-none ${isDarkMode ? 'border-gray-800 bg-gray-900 text-gray-500' : 'bg-gray-50 text-gray-400'}`}>
         <p className="font-bold">تمامی حقوق محفوظ است © ۱۴۰۴ | روغن‌یاب</p>
         <p className="mt-2 leading-relaxed">
           طراحی و توسعه توسط{' '}
-          <a 
-            href="https://koolegard.com/" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-blue-500 hover:underline font-bold"
-          >
-            توحید شعبانلو
-          </a>
+          <a href="https://koolegard.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-bold">توحید شعبانلو</a>
           {' | '}
-          <a 
-            href="https://rahvan.ir/" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-blue-500 hover:underline font-bold"
-          >
-            گروه رهوان
-          </a>
+          <a href="https://rahvan.ir/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-bold">گروه رهوان</a>
         </p>
         <p className="mt-1 opacity-60">نسخه ۲.۰.۰ (اندروید)</p>
       </footer>
-    </div>
   );
-};
 
-const ResultCard: React.FC<{ icon: React.ReactNode, label: string, value: string, color: string, isDark: boolean }> = ({ icon, label, value, color, isDark }) => {
-  const colorMap: Record<string, string> = {
-    amber: isDark ? 'bg-amber-900/10 text-amber-400 border-amber-900/30' : 'bg-amber-50 text-amber-900 border-amber-100',
-    blue: isDark ? 'bg-blue-900/10 text-blue-400 border-blue-900/30' : 'bg-blue-50 text-blue-900 border-blue-100',
-    emerald: isDark ? 'bg-emerald-900/10 text-emerald-400 border-emerald-900/30' : 'bg-emerald-50 text-emerald-900 border-emerald-100',
-    teal: isDark ? 'bg-teal-900/10 text-teal-400 border-teal-900/30' : 'bg-teal-50 text-teal-900 border-teal-100',
+  const ResultCard: React.FC<{ icon: React.ReactNode, label: string, value: string, color: string, isDark: boolean }> = ({ icon, label, value, color, isDark }) => {
+      const colorMap: Record<string, string> = { amber: 'bg-amber-50 text-amber-900', blue: 'bg-blue-50 text-blue-900', emerald: 'bg-emerald-50 text-emerald-900', teal: 'bg-teal-50 text-teal-900' };
+      const darkColorMap: Record<string, string> = { amber: 'bg-amber-900/10 text-amber-400', blue: 'bg-blue-900/10 text-blue-400', emerald: 'bg-emerald-900/10 text-emerald-400', teal: 'bg-teal-900/10 text-teal-400' };
+      return <div className={`p-4 rounded-2xl flex flex-col gap-2 transition-all ${isDark ? darkColorMap[color] : colorMap[color]}`}><div className="flex items-center gap-2 text-xs font-black opacity-70 uppercase">{icon}{label}</div><div className="text-lg font-black">{value}</div></div>
+  }
+
+  const TipsList = ({ tips }: { tips?: string | string[] }) => {
+    if (!tips || tips.length === 0) return <p className="opacity-60 text-sm">نکته خاصی برای این مدل ثبت نشده است.</p>;
+    const tipsArray = Array.isArray(tips) ? tips : [tips];
+    return <ul className="list-disc pr-4 space-y-2 text-sm">{tipsArray.map((tip, index) => <li key={index}>{tip}</li>)}</ul>;
   };
 
+  const renderMyCarInfoModal = () => (
+    <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4" onClick={() => setShowMyCarInfo(false)}>
+        <div className={`relative animate-in zoom-in-95 w-full max-w-2xl rounded-2xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowMyCarInfo(false)} className="absolute top-2 right-2 p-2 bg-black/20 rounded-full z-10"><X size={18} className="text-white"/></button>
+            <div className={`p-5 rounded-t-2xl text-white ${isDarkMode ? 'bg-gray-700' : 'bg-gradient-to-l from-blue-600 to-indigo-700'}`}>
+                <h2 className="text-xl font-black">{myCar?.model.name}</h2>
+                <p className="opacity-80 text-xs mt-1">{myCar?.engine.name}</p>
+            </div>
+            <div className="p-4 grid grid-cols-1 gap-3">
+                <ResultCard isDark={isDarkMode} icon={<Droplets size={16}/>} label="گرانروی پیشنهادی" value={myCar!.engine.viscosity} color="amber" />
+                <ResultCard isDark={isDarkMode} icon={<Info size={16}/>} label="سطح کیفی API" value={myCar!.engine.apiGrade} color="blue" />
+                <div className="grid grid-cols-2 gap-3">
+                    <ResultCard isDark={isDarkMode} icon={<AlertTriangle size={14}/>} label="حجم با فیلتر" value={myCar!.engine.capacityWithFilter} color="emerald" />
+                    <ResultCard isDark={isDarkMode} icon={<AlertTriangle size={14}/>} label="حجم بدون فیلتر" value={myCar!.engine.capacityWithoutFilter} color="teal" />
+                </div>
+            </div>
+            <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                 <h3 className="font-black text-lg mb-2">نکات مهم نگهداری</h3>
+                 <div className="leading-relaxed"><TipsList tips={myCar!.engine.tips} /></div>
+            </div>
+        </div>
+    </div>
+  );
+
+  const renderBrowser = () => (
+    <main className="flex-1 p-4 pb-12 overflow-x-hidden">
+        {showCustomCar ? (
+            <section className="animate-in fade-in">
+                 <button onClick={() => setShowCustomCar(false)} className="flex items-center text-blue-500 mb-6 font-bold text-sm"><ChevronLeft size={18} />بازگشت</button>
+                <h3 className="font-bold text-lg mb-2">ثبت خودروی سفارشی</h3>
+                <p className="text-sm opacity-70 mb-4">نام خودروی خود را (مثلا: پراید مدل ۸۸) وارد کنید.</p>
+                <input type="text" value={customCarName} onChange={(e) => setCustomCarName(e.target.value)} placeholder="نام خودرو" className={`w-full p-3 mb-4 rounded-lg font-bold text-center ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`} />
+                <button onClick={() => handleSetMyCar({ isCustom: true, customName: customCarName })} className="w-full bg-green-600 text-white font-bold py-3 rounded-lg">ذخیره خودروی من</button>
+            </section>
+        ) : (
+          <>
+            {!myCar && !selectedBrand && <p className="text-center p-3 mb-4 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-sm">برای شروع، لطفاً خودروی اصلی خود را از لیست زیر انتخاب کنید.</p>}
+            
+            {!selectedBrand && (
+                <section>
+                    <div className="relative mb-6">
+                         <Search className="absolute right-4 top-4 text-gray-400" size={18} />
+                         <input type="text" placeholder="جستجوی برند..." className={`w-full pr-12 pl-4 py-4 border-2 rounded-2xl ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {filteredBrands.map(brand => (
+                            <button key={brand.id} onClick={() => { setSelectedBrand(brand); setSearchTerm(''); }} className={`flex flex-col items-center justify-center p-4 border-2 rounded-2xl group aspect-square ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                                <div className="w-12 h-12 mb-3 flex items-center justify-center"><img src={brand.logo} alt={brand.name} className="max-w-full max-h-full object-contain"/></div>
+                                <span className="font-bold text-center text-xs">{brand.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <button onClick={() => setShowCustomCar(true)} className="w-full text-center py-4 mt-4 text-blue-600 dark:text-blue-400 font-bold">خودروی من در لیست نیست</button>
+                </section>
+            )}
+            {selectedBrand && !selectedModel && ( 
+                <section className="animate-in fade-in">
+                     <button onClick={() => resetBrowser()} className="flex items-center text-blue-500 mb-6 font-bold text-sm"><ChevronLeft size={18} />بازگشت به برندها</button>
+                     <div className="grid grid-cols-1 gap-3">
+                        {filteredModels.map(model => (
+                            <button key={model.id} onClick={() => setSelectedModel(model)} className={`w-full flex items-center justify-between p-5 border-2 rounded-2xl ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                                <div className="flex items-center gap-4"><Car size={20} className="text-gray-400" /><span className="font-bold text-md">{model.name}</span></div>
+                                <ChevronLeft size={16} className="text-gray-300" />
+                            </button>
+                        ))}
+                     </div>
+                </section> 
+            )}
+            {selectedModel && !selectedEngine && ( 
+                <section className="animate-in fade-in">
+                    <button onClick={() => setSelectedModel(null)} className="flex items-center text-blue-500 mb-6 font-bold text-sm"><ChevronLeft size={18} />بازگشت به مدل‌ها</button>
+                    <div className="space-y-4">
+                        {selectedModel.engines.map(engine => (
+                            <button key={engine.id} onClick={() => handleSelectEngine(engine)} className={`w-full text-right p-6 border-2 rounded-3xl ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
+                                <div className="font-black text-lg mb-1">{engine.name}</div>
+                                <div className="text-xs opacity-50">انتخاب این موتور</div>
+                            </button>
+                        ))}
+                    </div>
+                </section> 
+            )}
+            {selectedEngine && (
+                 <div className="animate-in zoom-in-95">
+                    <button onClick={() => setSelectedEngine(null)} className="flex items-center text-blue-500 mb-6 font-bold text-sm"><ChevronLeft size={18} />بازگشت به انتخاب موتور</button>
+                     {!myCar && <div className="p-4 mb-4 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200">
+                         <h3 className="font-bold">ثبت به عنوان خودروی من</h3>
+                         <p className="text-xs mb-3">با انتخاب این گزینه، این خودرو در صفحه اصلی شما نمایش داده می‌شود.</p>
+                         <button onClick={() => handleSetMyCar({ isCustom: false, brandId: selectedBrand!.id, modelId: selectedModel!.id, engineId: selectedEngine!.id })} className="w-full bg-green-600 text-white font-bold py-2 rounded-lg">انتخاب {selectedModel?.name}</button>
+                     </div>}
+                     <div className={`rounded-2xl border-2 overflow-hidden shadow-xl ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-blue-50'}`}>
+                         <div className={`p-5 text-white ${isDarkMode ? 'bg-gray-700' : 'bg-gradient-to-l from-blue-600 to-indigo-700'}`}><h2 className="text-xl font-black">{selectedModel?.name}</h2><p className="opacity-80 text-xs mt-1">{selectedEngine.name}</p></div>
+                         <div className="p-4 grid grid-cols-1 gap-3">
+                            <ResultCard isDark={isDarkMode} icon={<Droplets size={16}/>} label="گرانروی پیشنهادی" value={selectedEngine.viscosity} color="amber" />
+                            <ResultCard isDark={isDarkMode} icon={<Info size={16}/>} label="سطح کیفی API" value={selectedEngine.apiGrade} color="blue" />
+                            <div className="grid grid-cols-2 gap-3">
+                                <ResultCard isDark={isDarkMode} icon={<AlertTriangle size={14}/>} label="حجم با فیلتر" value={selectedEngine.capacityWithFilter} color="emerald" />
+                                <ResultCard isDark={isDarkMode} icon={<AlertTriangle size={14}/>} label="حجم بدون فیلتر" value={selectedEngine.capacityWithoutFilter} color="teal" />
+                            </div>
+                         </div>
+                     </div>
+                     <div className={`mt-4 rounded-2xl p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+                         <h3 className="font-black text-lg mb-2">نکات مهم نگهداری</h3>
+                         <TipsList tips={selectedEngine.tips} />
+                     </div>
+                 </div>
+            )}
+          </>
+        )}
+    </main>
+  );
+
+  const renderDashboard = () => (
+    <main className="p-4">
+        {myCar && 
+            <div className={`p-4 rounded-xl mb-6 text-center ${isDarkMode ? 'bg-gray-800' : 'bg-blue-50'}`}>
+                <p className="text-sm opacity-80">خودروی من</p>
+                <p className="font-black text-lg">{myCar.isCustom ? myCar.customName : `${myCar.brand.name} - ${myCar.model.name}`}</p>
+                <div className="flex justify-center items-center gap-3 mt-2">
+                    {!myCar.isCustom && <button onClick={() => setShowMyCarInfo(true)} className="text-xs bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-1"><Info size={12}/> مشخصات فنی</button>}
+                    <button onClick={() => { if(confirm('آیا از تغییر خودروی خود مطمئن هستید؟ سوابق سرویس شما باقی خواهد ماند.')) { Preferences.remove({ key: MY_CAR_STORAGE_KEY }); setMyCar(null); setView('browser'); } }} className="text-xs text-red-500">تغییر خودرو</button>
+                </div>
+            </div>
+        }
+
+        {showForm ? (
+             <div className={`p-4 rounded-2xl border mb-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                <h3 className="font-bold text-lg mb-4">{editingLog ? 'ویرایش سرویس' : 'ثبت سرویس جدید'}</h3>
+                <div className="mb-4">
+                    <label className="font-bold text-sm block mb-2">تاریخ سرویس</label>
+                    <DatePicker value={selectedDay} onChange={setSelectedDay} inputPlaceholder="انتخاب تاریخ" shouldHighlightWeekends locale="fa" calendarClassName={isDarkMode ? "dark-theme centered-calendar" : "centered-calendar"} calendarPopperPosition="bottom"/>
+                     <style>{`
+                        .centered-calendar .DayPicker {
+                            left: 50% !important;
+                            transform: translateX(-50%) !important;
+                        }
+                        ${isDarkMode && `.dark-theme { --cl-bg: #2d3748; --cl-color-disabled: #4a5568; --cl-color: #e2e8f0; --cl-hover: #4a5568; --cl-color-head: #a0aec0;}`}
+                    `}</style>
+                </div>
+                <div className="mb-4">
+                    <label className="font-bold text-sm block mb-2">کیلومتر فعلی خودرو</label>
+                    <input type="number" value={kilometer} onChange={e => setKilometer(e.target.value)} placeholder="مثال: ۱۲۵۰۰۰" className={`w-full p-3 rounded-lg text-center font-bold ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`} />
+                </div>
+                <div className="mb-4">
+                    <label className="font-bold text-sm block mb-2">سرویس‌های انجام شده</label>
+                    <div className="grid grid-cols-2 gap-2">
+                    {serviceOptions.map(service => <button key={service} onClick={() => toggleService(service)} className={`p-3 rounded-lg text-xs font-bold transition-colors ${selectedServices.includes(service) ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-700' : 'bg-gray-100')}`}>{service}</button>)}
+                    </div>
+                </div>
+                <div className="mb-6">
+                    <label className="font-bold text-sm block mb-2">یادداشت (اختیاری)</label>
+                    <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="مثلاً: استفاده از روغن بهران رانا" className={`w-full p-3 rounded-lg text-sm ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`} rows={2}></textarea>
+                </div>
+                <div className="flex gap-3">
+                    <button onClick={handleSaveLog} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold">ذخیره</button>
+                    <button onClick={resetLogForm} className={`flex-1 py-3 rounded-lg font-bold ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>انصراف</button>
+                </div>
+            </div>
+        ) : (
+           myCar && <button onClick={() => setShowForm(true)} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 mb-6 shadow-lg shadow-blue-500/50">
+                <Plus size={20}/> ثبت سرویس جدید
+            </button>
+        )}
+
+        {logs.length > 0 ? logs.map(log => (
+             <div key={log.id} className={`p-4 rounded-2xl border mb-3 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                <div className="flex justify-between items-start">
+                    <div><p className="font-bold text-lg">{toPersianDigits(log.kilometer.toLocaleString())} کیلومتر</p><p className="text-xs opacity-70 mb-3">{toPersianDigits(new Date(log.date).toLocaleDateString('fa-IR-u-nu-latn'))}</p></div>
+                    <div className="flex gap-2">
+                        <button onClick={() => handleStartEdit(log)} className="text-blue-500 p-2"><Edit size={16} /></button>
+                        <button onClick={() => {if(confirm('آیا از حذف این سابقه مطمئن هستید؟')) handleDeleteLog(log.id)}} className="text-red-500 p-2"><Trash2 size={16} /></button>
+                    </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-2">
+                    {log.services.map(s => <span key={s} className={`text-xs px-2 py-1 rounded-full ${isDarkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>{s}</span>)}
+                </div>
+                {log.notes && <p className={`text-xs p-2 rounded-lg mt-2 ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>{log.notes}</p>}
+            </div>
+        )) : <p className="text-center opacity-50 mt-10">هیچ سابقه‌ای ثبت نشده است.</p>}
+    </main>
+  );
+
   return (
-    <div className={`p-4 rounded-2xl border flex flex-col gap-2 transition-all ${colorMap[color]}`}>
-      <div className="flex items-center gap-2 text-[10px] font-black opacity-70 uppercase">
-        {icon}
-        {label}
-      </div>
-      <div className="text-lg font-black">{value}</div>
+    <div className={`min-h-screen flex flex-col max-w-2xl mx-auto shadow-2xl ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
+        {renderHeader()}
+        <div className="flex-1 overflow-y-auto">
+            {view === 'dashboard' ? renderDashboard() : renderBrowser()}
+        </div>
+        {showMyCarInfo && myCar && !myCar.isCustom && renderMyCarInfoModal()}
+        {renderFooter()} 
     </div>
   );
 };

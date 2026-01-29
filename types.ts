@@ -12,7 +12,7 @@ export interface EngineOption {
   capacityWithFilter: string;
   capacityWithoutFilter: string;
   apiGrade: string;
-  tips?: string | string[]; // Changed to allow array of strings for multiple tips
+  tips?: string | string[]; 
 }
 
 export interface Brand {
@@ -22,9 +22,11 @@ export interface Brand {
   models: CarModel[];
 }
 
-export interface OilRecommendation {
-  viscosity: string;
-  capacity: string;
-  api: string;
-  additionalInfo?: string;
+// New type for the Maintenance Log feature
+export interface MaintenanceLog {
+  id: string;
+  date: string; // Stored as ISO string, but displayed as Jalali
+  kilometer: number;
+  services: string[];
+  notes?: string;
 }
