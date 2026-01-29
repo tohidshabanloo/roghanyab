@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Preferences } from '@capacitor/preferences';
 import DatePicker, { Calendar, utils } from '@hassanmojab/react-modern-calendar-datepicker';
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Plus, Trash2, X, AlertTriangle } from 'lucide-react';
 import { MaintenanceLog as Log } from './types';
 
 const STORAGE_KEY = 'maintenance_logs';
@@ -46,6 +46,7 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [selectedDay, setSelectedDay] = useState(utils('fa').getToday());
+  const [alertDialog, setAlertDialog] = useState<{ isOpen: boolean; title: string, message: string } | null>(null);
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -69,7 +70,11 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
 
   const handleAddLog = () => {
     if (!kilometer || selectedServices.length === 0) {
-      alert('لطفاً کیلومتر و حداقل یک سرویس را مشخص کنید.');
+      setAlertDialog({
+        isOpen: true,
+        title: 'خطا',
+        message: 'لطفاً کیلومتر و حداقل یک سرویس را مشخص کنید.'
+      });
       return;
     }
 
@@ -135,6 +140,34 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
       {log.notes && <p className={`text-xs p-2 rounded-lg mt-2 ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>{log.notes}</p>}
     </div>
   );
+
+  const renderAlertDialog = () => {
+    if (!alertDialog?.isOpen) return null;
+    return (
+      <div className="fixed inset-0 bg-black/60 z-[10000] flex items-center justify-center p-6 backdrop-blur-sm transition-all" onClick={() => setAlertDialog(null)}>
+        <div
+          className={`w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className={`p-6 text-center ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+            <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-amber-900/20 text-amber-500' : 'bg-amber-50 text-amber-600'}`}>
+              <AlertTriangle size={32} />
+            </div>
+            <h3 className="text-xl font-black mb-2">{alertDialog.title}</h3>
+            <p className="text-sm opacity-70 leading-relaxed">{alertDialog.message}</p>
+          </div>
+          <div className="flex border-t border-gray-700/10 dark:border-gray-700">
+            <button
+              onClick={() => setAlertDialog(null)}
+              className="flex-1 py-4 font-bold text-blue-500 active:bg-gray-100 dark:active:bg-gray-700/50 transition-colors"
+            >
+              متوجه شدم
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="p-4">
@@ -222,6 +255,7 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
       {!showForm && (
         logs.length > 0 ? logs.map(renderLog) : <p className="text-center opacity-50 mt-10">هیچ سابقه‌ای ثبت نشده است.</p>
       )}
+      {renderAlertDialog()}
     </div>
   );
 };

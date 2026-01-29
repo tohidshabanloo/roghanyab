@@ -65,7 +65,7 @@ const App: React.FC = () => {
     const [editingLog, setEditingLog] = useState<Log | null>(null);
     const [showCustomCar, setShowCustomCar] = useState(false);
     const [customCarName, setCustomCarName] = useState('');
-    const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; title: string, message: string; onConfirm: () => void } | null>(null);
+    const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; title: string, message: string; type?: 'alert' | 'confirm'; onConfirm?: () => void } | null>(null);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -166,7 +166,12 @@ const App: React.FC = () => {
 
     const handleSaveLog = () => {
         if (!kilometer || selectedServices.length === 0) {
-            alert('لطفاً کیلومتر و حداقل یک سرویس را مشخص کنید.');
+            setConfirmDialog({
+                isOpen: true,
+                title: 'خطا',
+                message: 'لطفاً کیلومتر و حداقل یک سرویس را مشخص کنید.',
+                type: 'alert'
+            });
             return;
         }
 
@@ -302,6 +307,8 @@ const App: React.FC = () => {
 
     const renderConfirmModal = () => {
         if (!confirmDialog?.isOpen) return null;
+        const isAlert = confirmDialog.type === 'alert';
+
         return (
             <div className="fixed inset-0 bg-black/60 z-[10000] flex items-center justify-center p-6 backdrop-blur-sm transition-all" onClick={() => setConfirmDialog(null)}>
                 <div
@@ -316,19 +323,30 @@ const App: React.FC = () => {
                         <p className="text-sm opacity-70 leading-relaxed">{confirmDialog.message}</p>
                     </div>
                     <div className="flex border-t border-gray-700/10 dark:border-gray-700">
-                        <button
-                            onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
-                            className="flex-1 py-4 font-bold text-red-500 active:bg-gray-100 dark:active:bg-gray-700/50 transition-colors"
-                        >
-                            بله، اطمینان دارم
-                        </button>
-                        <div className="w-[1px] bg-gray-700/10 dark:bg-gray-700" />
-                        <button
-                            onClick={() => setConfirmDialog(null)}
-                            className={`flex-1 py-4 font-bold active:bg-gray-100 dark:active:bg-gray-700/50 transition-colors ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
-                        >
-                            انصراف
-                        </button>
+                        {isAlert ? (
+                            <button
+                                onClick={() => setConfirmDialog(null)}
+                                className="flex-1 py-4 font-bold text-blue-500 active:bg-gray-100 dark:active:bg-gray-700/50 transition-colors"
+                            >
+                                متوجه شدم
+                            </button>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => { confirmDialog.onConfirm?.(); setConfirmDialog(null); }}
+                                    className="flex-1 py-4 font-bold text-red-500 active:bg-gray-100 dark:active:bg-gray-700/50 transition-colors"
+                                >
+                                    بله، اطمینان دارم
+                                </button>
+                                <div className="w-[1px] bg-gray-700/10 dark:bg-gray-700" />
+                                <button
+                                    onClick={() => setConfirmDialog(null)}
+                                    className={`flex-1 py-4 font-bold active:bg-gray-100 dark:active:bg-gray-700/50 transition-colors ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                                >
+                                    انصراف
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
