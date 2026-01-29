@@ -54,7 +54,7 @@ const App: React.FC = () => {
     const [selectedModel, setSelectedModel] = useState<CarModel | null>(null);
     const [selectedEngine, setSelectedEngine] = useState<EngineOption | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isDarkMode, setIsDarkMode] = useState(true);
     const [logs, setLogs] = useState<Log[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [kilometer, setKilometer] = useState('');
@@ -230,7 +230,10 @@ const App: React.FC = () => {
     const renderHeader = () => (
         <header className={`bg-gradient-to-l ${isDarkMode ? 'from-gray-800 to-gray-900' : 'from-blue-700 to-indigo-800'} text-white p-5 sticky top-0 z-[9999] shadow-lg select-none`}>
             <div className="flex items-center justify-between mb-2">
-                <h1 className="text-xl font-black flex items-center gap-2">
+                <h1
+                    className="text-xl font-black flex items-center gap-2 cursor-pointer active:opacity-70 transition-opacity"
+                    onClick={() => setView('dashboard')}
+                >
                     <img src={appLogo} alt="Logo" className="w-8 h-8 object-contain drop-shadow-md" />
                     روغن‌یاب خودرو
                 </h1>
@@ -460,7 +463,11 @@ const App: React.FC = () => {
 
             {!showForm && (
                 logs.length > 0 ? logs.map(log => (
-                    <div key={log.id} className={`p-4 rounded-2xl border mb-3 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <div
+                        key={log.id}
+                        className={`p-4 rounded-2xl border mb-3 cursor-pointer active:scale-[0.99] transition-transform ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+                        onClick={() => handleStartEdit(log)}
+                    >
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="font-bold text-lg">{toPersianDigits(log.kilometer.toLocaleString())} کیلومتر</p>
@@ -468,7 +475,7 @@ const App: React.FC = () => {
                                     {toPersianDigits(formatDate(log.date))}
                                 </p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                                 <button onClick={() => handleStartEdit(log)} className="text-blue-500 p-2"><Edit size={16} /></button>
                                 <button onClick={() => { if (confirm('آیا از حذف این سابقه مطمئن هستید؟')) handleDeleteLog(log.id) }} className="text-red-500 p-2"><Trash2 size={16} /></button>
                             </div>
