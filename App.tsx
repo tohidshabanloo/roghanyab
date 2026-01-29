@@ -260,7 +260,7 @@ const App: React.FC = () => {
                 {' | '}
                 <a href="https://rahvan.ir/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-bold">گروه رهوان</a>
             </p>
-            <p className="mt-1 opacity-60">نسخه ۲.۰.۰ (اندروید)</p>
+            <p className="mt-1 opacity-60">نسخه ۳.۰.۱ (اندروید)</p>
         </footer>
     );
 
