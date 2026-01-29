@@ -173,7 +173,14 @@ const App: React.FC = () => {
         if (editingLog) {
             updatedLogs = logs.map(log =>
                 log.id === editingLog.id
-                    ? { ...log, date: `${selectedDay.year}/${String(selectedDay.month).padStart(2, '0')}/${String(selectedDay.day).padStart(2, '0')}`, kilometer: Number(kilometer), services: selectedServices, notes }
+                    ? {
+                        ...log,
+                        date: `${selectedDay.year}/${String(selectedDay.month).padStart(2, '0')}/${String(selectedDay.day).padStart(2, '0')}`,
+                        kilometer: Number(kilometer),
+                        services: selectedServices,
+                        notes,
+                        nextServiceKilometer: Number(kilometer) + (myCar?.engine?.recommendedInterval || 5000)
+                    }
                     : log
             );
         } else {
@@ -183,6 +190,7 @@ const App: React.FC = () => {
                 kilometer: Number(kilometer),
                 services: selectedServices,
                 notes: notes,
+                nextServiceKilometer: Number(kilometer) + (myCar?.engine?.recommendedInterval || 5000)
             };
             updatedLogs = [...logs, newLog];
         }
@@ -423,6 +431,11 @@ const App: React.FC = () => {
                     <div className="mb-4">
                         <label className="font-bold text-sm block mb-2">کیلومتر فعلی خودرو</label>
                         <input type="number" value={kilometer} onChange={e => setKilometer(e.target.value)} placeholder="مثال: ۱۲۵۰۰۰" className={`w-full p-3 rounded-lg text-center font-bold relative z-0 ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-100'}`} />
+                        {kilometer && (
+                            <div className={`mt-2 p-2 rounded-lg text-xs font-bold text-center ${isDarkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
+                                زمان پیشنهادی برای تعویض روغن بعدی: {toPersianDigits((Number(kilometer) + (myCar?.engine?.recommendedInterval || 5000)).toLocaleString())} کیلومتر
+                            </div>
+                        )}
                     </div>
                     <div className="mb-4">
                         <label className="font-bold text-sm block mb-2">سرویس‌های انجام شده</label>
@@ -445,26 +458,38 @@ const App: React.FC = () => {
                 </button>
             )}
 
-            {logs.length > 0 ? logs.map(log => (
-                <div key={log.id} className={`p-4 rounded-2xl border mb-3 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <p className="font-bold text-lg">{toPersianDigits(log.kilometer.toLocaleString())} کیلومتر</p>
-                            <p className="text-xs opacity-70 mb-3">
-                                {toPersianDigits(formatDate(log.date))}
-                            </p>
+            {!showForm && (
+                logs.length > 0 ? logs.map(log => (
+                    <div key={log.id} className={`p-4 rounded-2xl border mb-3 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="font-bold text-lg">{toPersianDigits(log.kilometer.toLocaleString())} کیلومتر</p>
+                                <p className="text-xs opacity-70 mb-3">
+                                    {toPersianDigits(formatDate(log.date))}
+                                </p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => handleStartEdit(log)} className="text-blue-500 p-2"><Edit size={16} /></button>
+                                <button onClick={() => { if (confirm('آیا از حذف این سابقه مطمئن هستید؟')) handleDeleteLog(log.id) }} className="text-red-500 p-2"><Trash2 size={16} /></button>
+                            </div>
                         </div>
-                        <div className="flex gap-2">
-                            <button onClick={() => handleStartEdit(log)} className="text-blue-500 p-2"><Edit size={16} /></button>
-                            <button onClick={() => { if (confirm('آیا از حذف این سابقه مطمئن هستید؟')) handleDeleteLog(log.id) }} className="text-red-500 p-2"><Trash2 size={16} /></button>
+
+                        <div className={`mb-3 p-3 rounded-xl border-2 border-dashed ${isDarkMode ? 'border-blue-900/50 bg-blue-900/10' : 'border-blue-100 bg-blue-50/50'}`}>
+                            <div className="flex justify-between items-center">
+                                <span className="text-xs font-bold opacity-70">پیش‌بینی سرویس بعدی:</span>
+                                <span className="text-sm font-black text-blue-600 dark:text-blue-400">
+                                    {toPersianDigits((log.nextServiceKilometer || (log.kilometer + 5000)).toLocaleString())} کیلومتر
+                                </span>
+                            </div>
                         </div>
+
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {log.services.map(s => <span key={s} className={`text-xs px-2 py-1 rounded-full ${isDarkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>{s}</span>)}
+                        </div>
+                        {log.notes && <p className={`text-xs p-2 rounded-lg mt-2 ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>{log.notes}</p>}
                     </div>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                        {log.services.map(s => <span key={s} className={`text-xs px-2 py-1 rounded-full ${isDarkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>{s}</span>)}
-                    </div>
-                    {log.notes && <p className={`text-xs p-2 rounded-lg mt-2 ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>{log.notes}</p>}
-                </div>
-            )) : <p className="text-center opacity-50 mt-10">هیچ سابقه‌ای ثبت نشده است.</p>}
+                )) : <p className="text-center opacity-50 mt-10">هیچ سابقه‌ای ثبت نشده است.</p>
+            )}
         </main>
     );
 

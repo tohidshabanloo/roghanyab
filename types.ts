@@ -12,7 +12,8 @@ export interface EngineOption {
   capacityWithFilter: string;
   capacityWithoutFilter: string;
   apiGrade: string;
-  tips?: string | string[]; 
+  recommendedInterval?: number;
+  tips?: string | string[];
 }
 
 export interface Brand {
@@ -29,4 +30,5 @@ export interface MaintenanceLog {
   kilometer: number;
   services: string[];
   notes?: string;
+  nextServiceKilometer?: number;
 }

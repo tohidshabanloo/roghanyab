@@ -79,6 +79,7 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
       kilometer: Number(kilometer),
       services: selectedServices,
       notes: notes,
+      nextServiceKilometer: Number(kilometer) + 5000
     };
 
     const updatedLogs = [...logs, newLog];
@@ -118,6 +119,16 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
           <Trash2 size={16} />
         </button>
       </div>
+
+      <div className={`mb-3 p-3 rounded-xl border-2 border-dashed ${isDarkMode ? 'border-blue-900/50 bg-blue-900/10' : 'border-blue-100 bg-blue-50/50'}`}>
+        <div className="flex justify-between items-center">
+          <span className="text-xs font-bold opacity-70">پیش‌بینی سرویس بعدی:</span>
+          <span className="text-sm font-black text-blue-600 dark:text-blue-400">
+            {toPersianDigits((log.nextServiceKilometer || (log.kilometer + 5000)).toLocaleString())} کیلومتر
+          </span>
+        </div>
+      </div>
+
       <div className="flex flex-wrap gap-2 mb-2">
         {log.services.map(s => <span key={s} className={`text-xs px-2 py-1 rounded-full ${isDarkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>{s}</span>)}
       </div>
@@ -160,6 +171,11 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
               placeholder="مثال: ۱۲۵۰۰۰"
               className={`w-full p-3 rounded-lg text-center font-bold ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
             />
+            {kilometer && (
+              <div className={`mt-2 p-2 rounded-lg text-xs font-bold text-center ${isDarkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
+                زمان پیشنهادی برای تعویض روغن بعدی: {toPersianDigits((Number(kilometer) + 5000).toLocaleString())} کیلومتر
+              </div>
+            )}
           </div>
 
           <div className="mb-4">
@@ -203,7 +219,9 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
         </button>
       )}
 
-      {logs.length > 0 ? logs.map(renderLog) : <p className="text-center opacity-50 mt-10">هیچ سابقه‌ای ثبت نشده است.</p>}
+      {!showForm && (
+        logs.length > 0 ? logs.map(renderLog) : <p className="text-center opacity-50 mt-10">هیچ سابقه‌ای ثبت نشده است.</p>
+      )}
     </div>
   );
 };
