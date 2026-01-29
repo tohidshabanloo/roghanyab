@@ -355,11 +355,18 @@ const App: React.FC = () => {
                                 <Search className="absolute right-4 top-4 text-gray-400" size={18} />
                                 <input type="text" placeholder="جستجوی برند..." className={`w-full pr-12 pl-4 py-4 border-2 rounded-2xl ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 gap-3">
                                 {filteredBrands.map(brand => (
-                                    <button key={brand.id} onClick={() => { setSelectedBrand(brand); setSearchTerm(''); }} className={`flex flex-col items-center justify-center p-4 border-2 rounded-2xl group aspect-square ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}>
-                                        <div className="w-12 h-12 mb-3 flex items-center justify-center"><img src={brand.logo} alt={brand.name} className="max-w-full max-h-full object-contain" /></div>
-                                        <span className="font-bold text-center text-xs">{brand.name}</span>
+                                    <button
+                                        key={brand.id}
+                                        onClick={() => { setSelectedBrand(brand); setSearchTerm(''); }}
+                                        className={`w-full flex items-center justify-between p-5 border-2 rounded-2xl ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <Car size={20} className="text-gray-400" />
+                                            <span className="font-bold text-md">{brand.name}</span>
+                                        </div>
+                                        <ChevronLeft size={16} className="text-gray-300" />
                                     </button>
                                 ))}
                             </div>
