@@ -9,7 +9,7 @@ import { MaintenanceLog as Log } from './types';
 const STORAGE_KEY = 'maintenance_logs';
 
 const serviceOptions = [
-  'تعویض روغن موتور', 
+  'تعویض روغن موتور',
   'تعویض فیلتر روغن',
   'تعویض فیلتر کابین',
   'تعویض فیلتر بنزین',
@@ -26,7 +26,7 @@ const toPersianDigits = (n: string | number) => {
 export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean }> = ({ onClose, isDarkMode }) => {
   const [logs, setLogs] = useState<Log[]>([]);
   const [showForm, setShowForm] = useState(false);
-  
+
   // Form State
   const [kilometer, setKilometer] = useState('');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
@@ -86,7 +86,7 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
   };
 
   const toggleService = (service: string) => {
-    setSelectedServices(prev => 
+    setSelectedServices(prev =>
       prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]
     );
   };
@@ -113,28 +113,31 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
     <div className="p-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-black">سوابق سرویس</h2>
-        <button onClick={onClose} className={`p-2 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}><X size={20}/></button>
+        <button onClick={onClose} className={`p-2 rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}><X size={20} /></button>
       </div>
 
       {showForm ? (
         <div className={`p-4 rounded-2xl border mb-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <div className="mb-4">
-                <label className="font-bold text-sm block mb-2">تاریخ سرویس</label>
-                <DatePicker
-                    value={selectedDay}
-                    onChange={setSelectedDay}
-                    inputPlaceholder="انتخاب تاریخ"
-                    shouldHighlightWeekends
-                    locale="fa"
-                    inputClassName={`w-full p-3 rounded-lg text-center font-bold ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'}`}
-                    calendarClassName={isDarkMode ? 'responsive-calendar dark-theme' : 'responsive-calendar'}
-                />
-                <style>{isDarkMode && `.dark-theme { --cl-bg: #2d3748; --cl-color-disabled: #4a5568; --cl-color: #e2e8f0; --cl-hover: #4a5568; --cl-color-head: #a0aec0;}`}</style>
-            </div>
+          <div className="mb-4">
+            <label className="font-bold text-sm block mb-2">تاریخ سرویس</label>
+            <DatePicker
+              value={selectedDay}
+              onChange={setSelectedDay}
+              inputPlaceholder="انتخاب تاریخ"
+              shouldHighlightWeekends
+              locale="fa"
+              inputClassName={`w-full p-3 rounded-lg text-center font-bold ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'}`}
+              calendarClassName={isDarkMode ? 'responsive-calendar dark-theme' : 'responsive-calendar'}
+            />
+            <style>{`
+                    .responsive-calendar-wrapper { z-index: 9998; }
+                    ${isDarkMode && `.dark-theme { --cl-bg: #2d3748; --cl-color-disabled: #4a5568; --cl-color: #e2e8f0; --cl-hover: #4a5568; --cl-color-head: #a0aec0;}`}
+                `}</style>
+          </div>
 
           <div className="mb-4">
             <label className="font-bold text-sm block mb-2">کیلومتر فعلی خودرو</label>
-            <input 
+            <input
               type="number"
               value={kilometer}
               onChange={e => setKilometer(e.target.value)}
@@ -147,7 +150,7 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
             <label className="font-bold text-sm block mb-2">سرویس‌های انجام شده</label>
             <div className="grid grid-cols-2 gap-2">
               {serviceOptions.map(service => (
-                <button 
+                <button
                   key={service}
                   onClick={() => toggleService(service)}
                   className={`p-3 rounded-lg text-xs font-bold transition-colors ${selectedServices.includes(service) ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-700' : 'bg-gray-100')}`}
@@ -160,7 +163,7 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
 
           <div className="mb-6">
             <label className="font-bold text-sm block mb-2">یادداشت (اختیاری)</label>
-            <textarea 
+            <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="مثلاً: استفاده از روغن بهران رانا"
@@ -175,11 +178,11 @@ export const MaintenanceLog: React.FC<{ onClose: () => void, isDarkMode: boolean
           </div>
         </div>
       ) : (
-        <button 
+        <button
           onClick={() => setShowForm(true)}
           className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 mb-6 active:scale-95 transition-transform shadow-lg shadow-blue-500/50"
         >
-          <Plus size={20}/>
+          <Plus size={20} />
           ثبت سرویس جدید
         </button>
       )}
