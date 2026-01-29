@@ -65,6 +65,7 @@ const App: React.FC = () => {
     const [editingLog, setEditingLog] = useState<Log | null>(null);
     const [showCustomCar, setShowCustomCar] = useState(false);
     const [customCarName, setCustomCarName] = useState('');
+    const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; title: string, message: string; onConfirm: () => void } | null>(null);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -299,6 +300,41 @@ const App: React.FC = () => {
         </div>
     );
 
+    const renderConfirmModal = () => {
+        if (!confirmDialog?.isOpen) return null;
+        return (
+            <div className="fixed inset-0 bg-black/60 z-[10000] flex items-center justify-center p-6 backdrop-blur-sm transition-all" onClick={() => setConfirmDialog(null)}>
+                <div
+                    className={`w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className={`p-6 text-center ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                        <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-amber-900/20 text-amber-500' : 'bg-amber-50 text-amber-600'}`}>
+                            <AlertTriangle size={32} />
+                        </div>
+                        <h3 className="text-xl font-black mb-2">{confirmDialog.title}</h3>
+                        <p className="text-sm opacity-70 leading-relaxed">{confirmDialog.message}</p>
+                    </div>
+                    <div className="flex border-t border-gray-700/10 dark:border-gray-700">
+                        <button
+                            onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
+                            className="flex-1 py-4 font-bold text-red-500 active:bg-gray-100 dark:active:bg-gray-700/50 transition-colors"
+                        >
+                            بله، اطمینان دارم
+                        </button>
+                        <div className="w-[1px] bg-gray-700/10 dark:bg-gray-700" />
+                        <button
+                            onClick={() => setConfirmDialog(null)}
+                            className={`flex-1 py-4 font-bold active:bg-gray-100 dark:active:bg-gray-700/50 transition-colors ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                        >
+                            انصراف
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     const renderBrowser = () => (
         <main className="flex-1 p-4 pb-12 overflow-x-hidden">
             {showCustomCar ? (
@@ -394,7 +430,23 @@ const App: React.FC = () => {
                     <p className="font-black text-lg">{myCar.isCustom ? myCar.customName : `${myCar.brand.name} - ${myCar.model.name}`}</p>
                     <div className="flex justify-center items-center gap-3 mt-2">
                         {!myCar.isCustom && <button onClick={() => setShowMyCarInfo(true)} className="text-xs bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-1"><Info size={12} /> مشخصات فنی</button>}
-                        <button onClick={() => { if (confirm('آیا از تغییر خودروی خود مطمئن هستید؟ سوابق سرویس شما باقی خواهد ماند.')) { Preferences.remove({ key: MY_CAR_STORAGE_KEY }); setMyCar(null); setView('browser'); } }} className="text-xs text-red-500">تغییر خودرو</button>
+                        <button
+                            onClick={() => {
+                                setConfirmDialog({
+                                    isOpen: true,
+                                    title: 'تغییر خودرو',
+                                    message: 'آیا از تغییر خودروی خود مطمئن هستید؟ سوابق سرویس شما باقی خواهد ماند.',
+                                    onConfirm: () => {
+                                        Preferences.remove({ key: MY_CAR_STORAGE_KEY });
+                                        setMyCar(null);
+                                        setView('browser');
+                                    }
+                                });
+                            }}
+                            className="text-xs text-red-500"
+                        >
+                            تغییر خودرو
+                        </button>
                     </div>
                 </div>
             }
@@ -477,7 +529,19 @@ const App: React.FC = () => {
                             </div>
                             <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                                 <button onClick={() => handleStartEdit(log)} className="text-blue-500 p-2"><Edit size={16} /></button>
-                                <button onClick={() => { if (confirm('آیا از حذف این سابقه مطمئن هستید؟')) handleDeleteLog(log.id) }} className="text-red-500 p-2"><Trash2 size={16} /></button>
+                                <button
+                                    onClick={() => {
+                                        setConfirmDialog({
+                                            isOpen: true,
+                                            title: 'حذف سابقه',
+                                            message: 'آیا از حذف این سابقه مطمئن هستید؟ این عمل غیرقابل بازگشت است.',
+                                            onConfirm: () => handleDeleteLog(log.id)
+                                        });
+                                    }}
+                                    className="text-red-500 p-2"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
                             </div>
                         </div>
 
@@ -507,6 +571,7 @@ const App: React.FC = () => {
                 {view === 'dashboard' ? renderDashboard() : renderBrowser()}
             </div>
             {showMyCarInfo && myCar && !myCar.isCustom && renderMyCarInfoModal()}
+            {renderConfirmModal()}
             {renderFooter()}
         </div>
     );
