@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android' // <--- Make sure this line exists
+apply plugin: 'kotlin-android' 
 
 android {
     namespace "com.rahvam.roghanyab"
@@ -8,12 +8,10 @@ android {
         applicationId "com.rahvam.roghanyab"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "2.0"
+        versionCode 3
+        versionName "3.0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
@@ -29,6 +27,13 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+    }
+    applicationVariants.all { variant ->
+        if (variant.buildType.name == "release") {
+            variant.outputs.all {
+                outputFileName = "roghanyab-3.0.1.apk"
+            }
+        }
     }
 }
 
@@ -57,16 +62,15 @@ try {
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
     }
-} catch(Exception e) {
+} catch (Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
 allprojects {
     tasks.withType(JavaCompile).configureEach {
-        // This force-disables the 'release' option if it was set by a plugin or Capacitor
         if (options.hasProperty('release')) {
             options.release.set(null)
         }
-        // This specifically removes the --release string from compiler arguments
         options.compilerArgs.removeIf { it == '--release' }
     }
 }
