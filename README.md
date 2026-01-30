@@ -5,14 +5,10 @@
 </div>
 
 <p align="center">
-  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="120" />
+  <img src="https://s.cafebazaar.ir/images/icons/com.rahvam.roghanyab-28d473b6-40e9-4e3c-91c7-e12d1681bb43_512x512.png?x-img=v1/format,type_webp,lossless_false/resize,h_256,w_256,lossless_false/optimize" width="120" />
 </p>
 
-<h1 align="center">My Android App</h1>
-
-<p align="center">
-  A fast, offline-first expense tracker built with Jetpack Compose
-</p>
+<h1 align="center">Roghan Yab</h1>
 
 ---
 
