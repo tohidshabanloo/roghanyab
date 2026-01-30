@@ -10,109 +10,161 @@
 
 <h1 align="center">Roghan Yab</h1>
 
-روغن‌یاب (RoghanYab) - Car Oil Guide
-This is an application designed to help users find the right type of oil and other essential specifications for their vehicles. It also allows users to log their vehicle maintenance history.
-این یک اپلیکیشن است که برای کمک به کاربران در پیدا کردن نوع روغن مناسب و دیگر مشخصات ضروری برای خودروی‌شان طراحی شده است. همچنین به کاربران این امکان را می‌دهد که تاریخچه سرویس‌های وسیله نقلیه خود را ثبت و مدیریت کنند.
-App Logo
-Key Features
-•
-Vehicle Information Database: Look up detailed information for a wide range of cars, including:
-◦
-Recommended Oil Viscosity (e.g., 10W-40)
-◦
-API Quality Grade
-◦
-Engine oil capacity (with and without filter)
-◦
-Important maintenance tips
-•
-Service Logging: Keep a detailed history of all vehicle services performed. You can record:
-◦
-Service date
-◦
-Vehicle mileage
-◦
-Services performed (oil change, filter replacement, etc.)
-◦
-Personal notes
-•
-Next Service Prediction: The app automatically calculates and displays the recommended mileage for your next service based on your last entry.
-•
-My Car Dashboard: Save your primary vehicle for quick access to its technical specifications and service history.
-•
-Custom Vehicle Support: If your car is not in the database, you can add it as a custom vehicle and log its services.
-•
-Dark & Light Mode: A modern interface with support for both dark and light themes.
-ویژگی‌های کلیدی
-•
-بانک اطلاعاتی خودروها: جستجوی اطلاعات دقیق برای طیف وسیعی از خودروها، شامل:
-◦
-گرانروی (ویسکوزیته) پیشنهادی روغن (مثلاً 10W-40)
-◦
-سطح کیفی API
-◦
-حجم روغن موتور (با فیلتر و بدون فیلتر)
-◦
-نکات مهم نگهداری
-•
-ثبت سوابق سرویس: تاریخچه دقیقی از تمام سرویس‌های انجام‌شده برای خودروی خود را ثبت و نگهداری کنید. شما می‌توانید موارد زیر را ثبت کنید:
-◦
-تاریخ سرویس
-◦
-کیلومتر فعلی خودرو
-◦
-سرویس‌های انجام‌شده (تعویض روغن، فیلتر و غیره)
-◦
-یادداشت‌های شخصی
-•
-پیش‌بینی سرویس بعدی: اپلیکیشن به طور خودکار کیلومتر پیشنهادی برای سرویس بعدی را بر اساس آخرین سابقه ثبت‌شده شما محاسبه و نمایش می‌دهد.
-•
-داشبورد خودروی من: خودروی اصلی خود را برای دسترسی سریع به مشخصات فنی و تاریخچه سرویس‌های آن ذخیره کنید.
-•
-پشتیبانی از خودروی سفارشی: اگر خودروی شما در لیست موجود نیست، می‌توانید آن را به عنوان یک خودروی سفارشی اضافه کرده و سرویس‌های آن را ثبت کنید.
-•
-حالت تاریک و روشن: رابط کاربری مدرن با پشتیبانی از دو تم تاریک و روشن.
-Technologies Used
-•
-Framework: React
-•
-Build Tool: Vite
-•
-Mobile Platform: Capacitor
-•
-Styling: Tailwind CSS
-تکنولوژی‌های استفاده شده
-•
-فریمورک: React
-•
-ابزار ساخت: Vite
-•
-پلتفرم موبایل: Capacitor
-•
-استایل‌دهی: Tailwind CSS
-How to Build the App (for Developers)
-1.
-Clone the repository:
-Shell Script
-git clone [your-repository-url]
-ii.
-Install dependencies:
-Shell Script
+<p align="center">
+  <img src="roghan.png" width="140" alt="RoghanYab App Icon" />
+</p>
+
+<h1 align="center">روغن‌یاب | RoghanYab</h1>
+
+<p align="center">
+  <b>Car Oil Guide & Vehicle Maintenance App</b><br/>
+  نسخه 3.0.1
+</p>
+
+<p align="center">
+  ساخته شده با ❤️ در ایران | Made with ❤️ in Iran
+</p>
+
+---
+
+## 📖 درباره پروژه | About the Project
+
+### 🇮🇷 فارسی
+
+**روغن‌یاب** یک اپلیکیشن پیشرفته برای کمک به مالکان خودرو است تا:
+- روغن موتور مناسب خودروی خود را پیدا کنند
+- مشخصات فنی دقیق خودرو را مشاهده کنند
+- سوابق سرویس و نگهداری خودرو را ثبت و مدیریت کنند
+
+این اپلیکیشن با تمرکز بر بازار ایران توسعه داده شده و اطلاعات کاملی مانند **گرانروی روغن، سطح API، حجم روغن (با و بدون فیلتر)** و نکات مهم نگهداری را ارائه می‌دهد.
+
+روغن‌یاب به‌صورت **Progressive Web App (PWA)** طراحی شده و قابلیت نصب روی موبایل، استفاده آفلاین و همچنین خروجی **APK اندروید** را دارد.
+
+---
+
+### 🇺🇸 English
+
+**RoghanYab** is an advanced car oil guide and vehicle maintenance application designed to help users:
+- Find the correct engine oil for their vehicle
+- View accurate technical specifications
+- Log and track vehicle service history
+
+The app is focused on the Iranian automotive market and provides detailed data such as **recommended oil viscosity, API grade, oil capacity (with/without filter)**, and maintenance tips.
+
+RoghanYab is built as a **Progressive Web App (PWA)** with offline support and can also be packaged as an **Android APK**.
+
+---
+
+## ✨ ویژگی‌ها | Key Features
+
+### 🔧 اطلاعات فنی خودرو | Vehicle Information
+- گرانروی پیشنهادی روغن (Viscosity)
+- سطح کیفی API
+- حجم روغن با فیلتر و بدون فیلتر
+- نکات مهم نگهداری موتور
+- پشتیبانی از خودروهای ایرانی و وارداتی
+
+### 🧾 مدیریت سرویس خودرو | Service Logging
+- ثبت تاریخ سرویس
+- ثبت کیلومتر خودرو
+- ثبت نوع سرویس (تعویض روغن، فیلتر و…)
+- یادداشت‌های شخصی
+- پیش‌بینی کیلومتر سرویس بعدی به‌صورت هوشمند
+
+### 🚗 داشبورد خودروی من | My Car Dashboard
+- ذخیره خودروی اصلی
+- دسترسی سریع به مشخصات فنی
+- مشاهده کامل سوابق سرویس
+
+### ⚙️ امکانات عمومی
+- 🔍 جستجوی پیشرفته خودرو
+- 📱 طراحی کاملاً واکنش‌گرا
+- 🌙 حالت تاریک و روشن
+- 📲 نصب به‌صورت اپلیکیشن (PWA)
+- 🌐 پشتیبانی آفلاین
+- 🤖 مشاوره هوشمند (آنلاین)
+
+---
+
+## 🚀 شروع سریع | Quick Start
+
+### پیش‌نیازها | Prerequisites
+- Node.js **18+**
+- npm یا yarn
+
+### نصب و اجرا | Installation
+
+```bash
+git clone https://github.com/tohidshabanloo/roghanyab.git
+cd roghanyab
 npm install
-2.
-Build a debug APK for Android: This command compiles the web assets and creates an installable debug APK in android/app/build/outputs/apk/debug/.
-Shell Script
+npm run dev
+تنظیم متغیر محیطی | Environment Variables
+GEMINI_API_KEY=your_api_key_here
+📱 ساخت APK اندروید | Build Android APK
+سریع | Quick
+# Windows
+setup-android-build.bat
+build-android.bat
+
+# Linux / macOS
 npm run android:debug
-3.
-Build a release APK for Android: This command creates an unsigned release APK. You must sign it before it can be published.
-Shell Script
 npm run android:build
-نحوه ساخت اپلیکیشن (برای توسعه‌دهندگان)
-۱. کلون کردن ریپازیتوری: x-sh git clone [your-repository-url]  ۲. نصب وابستگی‌ها: x-sh npm install  ۳. ساخت فایل APK دیباگ برای اندروید: این دستور سورس کد وب را کامپایل کرده و یک فایل APK قابل نصب در مسیر android/app/build/outputs/apk/debug/ ایجاد می‌کند. x-sh npm run android:debug  ۴. ساخت فایل APK نهایی (Release) برای اندروید: این دستور یک فایل APK امضا نشده ایجاد می‌کند. قبل از انتشار، باید آن را امضا کنید. x-sh npm run android:build 
-Credits / تقدیر
-•
-Design and Development: Tohid Shabanloo
-•
-طراحی و توسعه: توحید شعبانلو
-•
+فایل APK در مسیر زیر ساخته می‌شود:
+
+android/app/build/outputs/apk/
+🛠️ تکنولوژی‌ها | Technologies Used
+React 19
+
+TypeScript
+
+Vite
+
+Tailwind CSS
+
+Capacitor (Android)
+
+PWA
+
+Dark / Light Mode
+
+📁 ساختار پروژه | Project Structure
+roghanyab/
+├── App.tsx
+├── index.tsx
+├── constants.tsx
+├── services/
+│   └── geminiService.ts
+├── manifest.json
+├── roghan.png
+└── package.json
+🤝 مشارکت | Contributing
+مشارکت شما باعث بهتر شدن پروژه می‌شود 🙌
+Fork → Branch → Commit → Pull Request
+
+📄 مجوز | License
+این پروژه تحت مجوز اختصاصی است.
+All rights reserved.
+
+👨‍💻 توسعه‌دهنده | Developer
+توهید شعبانلو | Tohid Shabanloo
+
+🌐 https://koolegard.com
+
+🏢 شرکت | Company
 Rahvan Group | Koolegard
+
+🌐 https://rahvan.ir
+
+<p align="center"> © 2024–2025 — RoghanYab v3.0.1 </p> ```
+اگر بخوای، قدم بعدی می‌تونم:
+
+✨ نسخه مخصوص Pinned Repo Showcase بسازم
+
+📱 بخش Screenshots + GIF demo
+
+🏪 متن آماده برای Google Play / CafeBazaar
+
+🎥 متن معرفی برای ویدیوی یوتیوب اپ
+
+بگو کدومو می‌خوای 😉 
