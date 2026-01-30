@@ -123,10 +123,10 @@ const App: React.FC = () => {
             } else if (myCar) {
                 setView('dashboard');
             } else {
-                CapacitorApp.exitApp();
+                // Do nothing to prevent exiting
             }
         } else {
-            CapacitorApp.exitApp();
+            // Do nothing to prevent exiting
         }
     }
 

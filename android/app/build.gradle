@@ -28,13 +28,6 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-    applicationVariants.all { variant ->
-        if (variant.buildType.name == "release") {
-            variant.outputs.all {
-                outputFileName = "roghanyab-3.0.1.apk"
-            }
-        }
-    }
 }
 
 repositories {
