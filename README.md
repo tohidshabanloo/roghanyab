@@ -4,6 +4,16 @@
   <p>نسخه ۱.۰.۰ | Version 1.0.0</p>
 </div>
 
+<p align="center">
+  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="120" />
+</p>
+
+<h1 align="center">My Android App</h1>
+
+<p align="center">
+  A fast, offline-first expense tracker built with Jetpack Compose
+</p>
+
 ---
 
 ## 📖 درباره پروژه | About the Project
