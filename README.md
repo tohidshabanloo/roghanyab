@@ -46,9 +46,9 @@ RoghanYab is built as a **Progressive Web App (PWA)** with offline support and c
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="screenshots/screen-1.png" width="250" alt="Screenshot 1" />
-  <img src="screenshots/screen-2.png" width="250" alt="Screenshot 2" />
-  <img src="screenshots/screen-3.png" width="250" alt="Screenshot 3" />
+  <img src="https://s.cafebazaar.ir/images/upload/screenshot/com.rahvam.roghanyab-654162763895.jpg?x-img=v1/format,type_webp,lossless_false/resize,h_600,lossless_false/optimize" width="250" alt="Screenshot 1" />
+  <img src="https://s.cafebazaar.ir/images/upload/screenshot/com.rahvam.roghanyab-069787646188.jpg?x-img=v1/format,type_webp,lossless_false/resize,h_600,lossless_false/optimize" width="250" alt="Screenshot 2" />
+  <img src="https://s.cafebazaar.ir/images/upload/screenshot/com.rahvam.roghanyab-732543812464.jpg?x-img=v1/format,type_webp,lossless_false/resize,h_600,lossless_false/optimize)" width="250" alt="Screenshot 3" />
 </p>
 
 > Replace the image links above with your actual screenshots.
