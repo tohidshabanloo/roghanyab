@@ -51,8 +51,6 @@ RoghanYab is built as a **Progressive Web App (PWA)** with offline support and c
   <img src="https://s.cafebazaar.ir/images/upload/screenshot/com.rahvam.roghanyab-732543812464.jpg?x-img=v1/format,type_webp,lossless_false/resize,h_600,lossless_false/optimize)" width="250" alt="Screenshot 3" />
 </p>
 
-> Replace the image links above with your actual screenshots.
-
 ---
 
 ## ✨ Key Features | ویژگی‌ها
